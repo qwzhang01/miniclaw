@@ -23,16 +23,16 @@
 
 | # | 任务 | 状态 | 完成标准 | 对应 PRD |
 |---|------|------|---------|---------|
-| 0.1 | 初始化项目结构 + pyproject.toml | ⬜ TODO | 目录结构与架构文档一致，10 个依赖配好 | §6 |
-| 0.2 | 配置 ruff + mypy | ⬜ TODO | `ruff check` 和 `mypy` 通过 | §5.4 |
-| 0.3 | 创建 .env.example | ⬜ TODO | 列出所有 API Key 环境变量（DEEPSEEK/OPENAI/ANTHROPIC） | F9 |
+| 0.1 | 初始化项目结构 + pyproject.toml | ✅ DONE | 目录结构与架构文档一致，10 个依赖配好 | §6 |
+| 0.2 | 配置 ruff + mypy | ✅ DONE | `ruff check` 和 `mypy` 通过 | §5.4 |
+| 0.3 | 创建 .env.example | ✅ DONE | 列出所有 API Key 环境变量（DEEPSEEK/OPENAI/ANTHROPIC） | F9 |
 | 0.4 | 编写需求文档 | ✅ DONE | PRD-v1.md 定稿 | — |
 | 0.5 | 编写架构文档 | ✅ DONE | architecture.md 完成 | — |
 | 0.6 | 编写代码规范 | ✅ DONE | conventions.md 完成 | — |
 | 0.7 | 编写 README | ✅ DONE | README.md 完成 | §8 |
-| 0.8 | 入口文件 `__main__.py` + `cli.py` | ⬜ TODO | `python -m miniclaw` 和 `miniclaw` 命令能启动 | §7 M1 |
-| 0.9 | 结构化日志系统 `utils/logging.py` | ⬜ TODO | 统一日志格式，支持 info/debug/error，debug 输出完整 prompt | §5.3 |
-| 0.10 | Token 计数 `utils/tokens.py` | ⬜ TODO | 按角色统计 input/output token 数，debug 日志输出 | F2 |
+| 0.8 | 入口文件 `__main__.py` + `cli.py` | ✅ DONE | `python -m miniclaw` 和 `miniclaw` 命令能启动 | §7 M1 |
+| 0.9 | 结构化日志系统 `utils/logging.py` | ✅ DONE | 统一日志格式，支持 info/debug/error，debug 输出完整 prompt | §5.3 |
+| 0.10 | Token 计数 `utils/tokens.py` | ✅ DONE | 按角色统计 input/output token 数，debug 日志输出 | F2 |
 
 ---
 
@@ -57,14 +57,14 @@
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 1.2.1 | 实现 `@tool` 装饰器 + `ToolRegistry` | ⬜ TODO | 装饰器注册工具，自动从函数签名生成 JSON Schema（供 LLM 使用） |
-| 1.2.2 | 实现 `ToolExecutor`（执行引擎） | ⬜ TODO | 完整流程：参数校验 → 安全审批 → 执行 → 格式化结果 → 返回 ToolResult |
-| 1.2.3 | 实现安全审批流程 | ⬜ TODO | low=自动执行 / high=用户确认(y/n) / critical=二次确认(输入 CONFIRM) |
-| 1.2.4 | 实现用户拒绝处理 | ⬜ TODO | 拒绝时返回 `ToolResult(success=False, output="用户拒绝执行此操作")`，不中断 Agent Loop |
-| 1.2.5 | 内置工具：`shell_exec` | ⬜ TODO | risk=high，执行 Shell 命令，返回 stdout，超时 30s |
-| 1.2.6 | 内置工具：`read_file` / `write_file` | ⬜ TODO | read=low / write=high，带 `allowed_directories` 白名单路径校验 |
-| 1.2.7 | 内置工具：`web_search` | ⬜ TODO | risk=low，使用 DuckDuckGo（duckduckgo-search 库，免费无 key），备选 Tavily |
-| 1.2.8 | 内置工具：`http_request` | ⬜ TODO | risk=low，基于 httpx，支持 GET/POST，返回响应文本 |
+| 1.2.1 | 实现 `@tool` 装饰器 + `ToolRegistry` | ✅ DONE | 装饰器注册工具，自动从函数签名生成 JSON Schema（供 LLM 使用） |
+| 1.2.2 | 实现 `ToolExecutor`（执行引擎） | ✅ DONE | 完整流程：参数校验 → 安全审批 → 执行 → 格式化结果 → 返回 ToolResult |
+| 1.2.3 | 实现安全审批流程 | ✅ DONE | low=自动执行 / high=用户确认(y/n) / critical=二次确认(输入 CONFIRM) |
+| 1.2.4 | 实现用户拒绝处理 | ✅ DONE | 拒绝时返回 `ToolResult(success=False, output="用户拒绝执行此操作")`，不中断 Agent Loop |
+| 1.2.5 | 内置工具：`shell_exec` | ✅ DONE | risk=high，执行 Shell 命令，返回 stdout，超时 30s |
+| 1.2.6 | 内置工具：`read_file` / `write_file` | ✅ DONE | read=low / write=high，带 `allowed_directories` 白名单路径校验 |
+| 1.2.7 | 内置工具：`web_search` | ✅ DONE | risk=low，使用 DuckDuckGo（duckduckgo-search 库，免费无 key），备选 Tavily |
+| 1.2.8 | 内置工具：`http_request` | ✅ DONE | risk=low，基于 httpx，支持 GET/POST，返回响应文本 |
 
 ### M1.3 Agent 核心（PRD F1）
 
@@ -248,12 +248,12 @@
 
 | 里程碑 | 任务数 | 完成数 | 进度 |
 |--------|--------|--------|------|
-| M0: 项目基建 | 10 | 4 | ████████░░░░░░░ 40% |
-| M1: 能对话 | 28 | 0 | ░░░░░░░░░░░░░░░ 0% |
+| M0: 项目基建 | 10 | 10 | ███████████████ 100% |
+| M1: 能对话 | 28 | 28 | ███████████████ 100% |
 | M2: 能操控浏览器 | 8 | 0 | ░░░░░░░░░░░░░░░ 0% |
 | M3: 能操控桌面 | 11 | 0 | ░░░░░░░░░░░░░░░ 0% |
 | M4: 完整框架 | 14 | 0 | ░░░░░░░░░░░░░░░ 0% |
-| **总计** | **71** | **4** | **█░░░░░░░░░░░░░░ 6%** |
+| **总计** | **71** | **38** | **████████░░░░░░░ 54%** |
 
 ---
 
