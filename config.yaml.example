@@ -1,0 +1,60 @@
+# MiniClaw 配置文件
+# 复制到 ~/.miniclaw/config.yaml：
+#   mkdir -p ~/.miniclaw && cp config.yaml.example ~/.miniclaw/config.yaml
+#
+# base_url / api_key / model 通过 ${ENV_VAR} 引用 .env 中的环境变量
+# 切换平台/模型只需改 .env，不用动这个文件
+
+# === LLM 配置 ===
+# 统一 OpenAI 兼容协议，三要素全在 .env 管理：LLM_BASE_URL + LLM_API_KEY + LLM_MODEL
+# 四个角色：default(日常对话) / planner(任务规划) / reasoner(截屏分析) / maker(代码生成)
+# 未配置的角色自动降级到 default，所以只配 default 就能跑
+
+llm:
+  default:
+    provider: openai_compatible
+    base_url: ${LLM_BASE_URL}
+    api_key: ${LLM_API_KEY}
+    model: ${LLM_MODEL}
+    temperature: 0.7
+    max_tokens: 4096
+
+  # 按需为不同角色指定不同模型（可选，不配则降级到 default）
+  # planner:
+  #   provider: openai_compatible
+  #   base_url: ${LLM_BASE_URL}
+  #   api_key: ${LLM_API_KEY}
+  #   model: ${LLM_MODEL}
+  #   temperature: 0.7
+  #   max_tokens: 4096
+
+  # 不同角色用不同平台时，引用第二组环境变量
+  # reasoner:
+  #   provider: openai_compatible
+  #   base_url: ${LLM_BASE_URL_2}
+  #   api_key: ${LLM_API_KEY_2}
+  #   model: ${LLM_MODEL_2}
+  #   temperature: 0.7
+  #   max_tokens: 4096
+
+# === 安全配置 ===
+security:
+  auto_approve_low_risk: true
+  confirm_high_risk: true
+  allowed_directories:
+    - ~/git/
+    - ~/Documents/
+
+# === 浏览器配置 ===
+browser:
+  headless: false
+  use_system_chrome: true
+
+# === 平台配置 ===
+platform:
+  desktop_controller: auto
+
+# === 日志配置 ===
+logging:
+  level: info
+  file: ~/.miniclaw/logs/miniclaw.log
