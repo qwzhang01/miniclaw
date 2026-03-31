@@ -155,17 +155,17 @@
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 3.1 | `DesktopController` 抽象基类 | ⬜ TODO | 定义 6 个接口：capture_screen / click / type_text / hotkey / get_active_window_title / list_windows |
-| 3.2 | `MacOSController` 实现 | ⬜ TODO | pyautogui + Pillow + osascript + Quartz，实现全部 6 个接口 |
-| 3.3 | 平台检测 + 工厂函数 `factory.py` | ⬜ TODO | `create_controller()` 自动检测 macOS，非 macOS 抛 NotImplementedError |
-| 3.4 | 内置工具：`screen_capture` | ⬜ TODO | risk=low，全屏/区域截图，返回 base64 |
-| 3.5 | 内置工具：`screen_analyze`（复合工具） | ⬜ TODO | risk=low，截图 → 内部调 reasoner LLM → 返回文字描述（唯一允许工具内调 LLM 的特例） |
-| 3.6 | 内置工具：`mouse_click` | ⬜ TODO | risk=high，在指定坐标 (x, y) 点击，支持 left/right 按钮 |
-| 3.7 | 内置工具：`keyboard_type` | ⬜ TODO | risk=high，模拟键盘输入文字 |
-| 3.8 | 内置工具：`list_windows` | ⬜ TODO | risk=low，列出当前可见窗口列表（osascript） |
-| 3.9 | macOS 权限检测与引导 | ⬜ TODO | 检测辅助功能权限，无权限时输出友好引导（系统设置路径） |
-| 3.10 | `desktop-assistant` Skill | ⬜ TODO | SKILL.md（桌面操控 SOP）+ 操控工作流 |
-| 3.11 | 多模态 LLM 集成 | ⬜ TODO | Provider 的 chat() 支持 images 参数（base64 编码），reasoner 角色自动使用 |
+| 3.1 | `DesktopController` 抽象基类 | ✅ DONE | 定义 6 个接口：capture_screen / click / type_text / hotkey / get_active_window_title / list_windows |
+| 3.2 | `MacOSController` 实现 | ✅ DONE | pyautogui + Pillow + osascript + Quartz，实现全部 6 个接口 |
+| 3.3 | 平台检测 + 工厂函数 `factory.py` | ✅ DONE | `create_controller()` 自动检测 macOS，非 macOS 抛 NotImplementedError |
+| 3.4 | 内置工具：`screen_capture` | ✅ DONE | risk=low，全屏/区域截图，返回 base64 |
+| 3.5 | 内置工具：`screen_analyze`（复合工具） | ✅ DONE | risk=low，截图 → 内部调 reasoner LLM → 返回文字描述（唯一允许工具内调 LLM 的特例） |
+| 3.6 | 内置工具：`mouse_click` | ✅ DONE | risk=high，在指定坐标 (x, y) 点击，支持 left/right 按钮 |
+| 3.7 | 内置工具：`keyboard_type` | ✅ DONE | risk=high，模拟键盘输入文字 |
+| 3.8 | 内置工具：`list_windows` | ✅ DONE | risk=low，列出当前可见窗口列表（osascript） |
+| 3.9 | macOS 权限检测与引导 | ✅ DONE | 检测辅助功能权限，无权限时输出友好引导（系统设置路径） |
+| 3.10 | `desktop-assistant` Skill | ✅ DONE | SKILL.md（桌面操控 SOP）+ 操控工作流 |
+| 3.11 | 多模态 LLM 集成 | ✅ DONE | Provider 的 chat() 支持 images 参数（base64 编码），reasoner 角色自动使用 |
 
 ### M3 完成检查点 ✓
 
@@ -251,9 +251,9 @@
 | M0: 项目基建 | 10 | 10 | ███████████████ 100% |
 | M1: 能对话 | 31 | 31 | ███████████████ 100% |
 | M2: 能操控浏览器 | 8 | 8 | ███████████████ 100% |
-| M3: 能操控桌面 | 11 | 0 | ░░░░░░░░░░░░░░░ 0% |
+| M3: 能操控桌面 | 11 | 11 | ███████████████ 100% |
 | M4: 完整框架 | 14 | 0 | ░░░░░░░░░░░░░░░ 0% |
-| **总计** | **74** | **49** | **██████████░░░░░ 66%** |
+| **总计** | **74** | **60** | **████████████░░░ 81%** |
 
 ---
 
