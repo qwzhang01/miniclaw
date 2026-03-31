@@ -45,13 +45,13 @@
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 1.1.1 | 实现 `BaseProvider` 抽象基类 | ⬜ TODO | 定义 `chat()` / `chat_stream()` 接口，支持 messages + tools + role 参数 |
-| 1.1.2 | 实现 `OpenAIProvider` | ⬜ TODO | 能调用 DeepSeek/Qwen/Ollama API 完成对话 + 工具调用（OpenAI 兼容协议） |
-| 1.1.3 | 实现 `AnthropicProvider` | ⬜ TODO | 能调用 Claude API，tool_use 协议兼容（处理协议差异） |
-| 1.1.4 | 实现四模型角色注册 `ModelRoleRegistry` | ⬜ TODO | 配置 4 个角色（default/planner/reasoner/maker），按 role 参数路由到对应 Provider |
-| 1.1.5 | 流式输出支持 | ⬜ TODO | `chat_stream()` 返回 AsyncIterator，支持逐 token 输出 |
-| 1.1.6 | 重试 + fallback 机制 | ⬜ TODO | 超时自动重试（3 次），任何角色不可用时降级到 default |
-| 1.1.7 | Token 计数集成 | ⬜ TODO | 每次 chat() 调用后记录 input/output token，按角色累计，debug 日志输出 |
+| 1.1.1 | 实现 `BaseProvider` 抽象基类 | ✅ DONE | 定义 `chat()` / `chat_stream()` 接口，支持 messages + tools + role 参数 |
+| 1.1.2 | 实现 `OpenAIProvider` | ✅ DONE | 能调用 DeepSeek/Qwen/Ollama API 完成对话 + 工具调用（OpenAI 兼容协议） |
+| 1.1.3 | 实现 `AnthropicProvider` | ✅ DONE | 能调用 Claude API，tool_use 协议兼容（处理协议差异） |
+| 1.1.4 | 实现四模型角色注册 `ModelRoleRegistry` | ✅ DONE | 配置 4 个角色（default/planner/reasoner/maker），按 role 参数路由到对应 Provider |
+| 1.1.5 | 流式输出支持 | ✅ DONE | `chat_stream()` 返回 AsyncIterator，支持逐 token 输出 |
+| 1.1.6 | 重试 + fallback 机制 | ✅ DONE | 超时自动重试（3 次），任何角色不可用时降级到 default |
+| 1.1.7 | Token 计数集成 | ✅ DONE | 每次 chat() 调用后记录 input/output token，按角色累计，debug 日志输出 |
 
 ### M1.2 工具系统（PRD F3）
 
@@ -70,37 +70,37 @@
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 1.3.1 | 实现 `AgentContext`（上下文管理器） | ⬜ TODO | 管理消息历史、动态工具列表（全局+Skill）、活跃 Skill 上下文 |
-| 1.3.2 | 实现 `AgentLoop`（ReAct 主循环） | ⬜ TODO | 完整流程：组装上下文 → 调 LLM → 解析 → 工具调用/文本回复 → 循环 |
-| 1.3.3 | 实现 `ModelRouter`（模型路由器） | ⬜ TODO | 按优先级判断：有图→reasoner / 首轮复杂→planner / 产出→maker / 其他→default |
-| 1.3.4 | 最大循环次数限制 | ⬜ TODO | 默认 10 轮自动停止，返回友好提示 |
-| 1.3.5 | 错误恢复机制 | ⬜ TODO | 工具失败/超时/拒绝后 Agent 能自行决策（重试/换方案/告知用户） |
+| 1.3.1 | 实现 `AgentContext`（上下文管理器） | ✅ DONE | 管理消息历史、动态工具列表（全局+Skill）、活跃 Skill 上下文 |
+| 1.3.2 | 实现 `AgentLoop`（ReAct 主循环） | ✅ DONE | 完整流程：组装上下文 → 调 LLM → 解析 → 工具调用/文本回复 → 循环 |
+| 1.3.3 | 实现 `ModelRouter`（模型路由器） | ✅ DONE | 按优先级判断：有图→reasoner / 首轮复杂→planner / 产出→maker / 其他→default |
+| 1.3.4 | 最大循环次数限制 | ✅ DONE | 默认 10 轮自动停止，返回友好提示 |
+| 1.3.5 | 错误恢复机制 | ✅ DONE | 工具失败/超时/拒绝后 Agent 能自行决策（重试/换方案/告知用户） |
 
 ### M1.4 Gateway 消息网关（PRD F6.5）
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 1.4.1 | 实现 `Gateway.handle_message()` | ⬜ TODO | 接收 Channel 消息 → 路由给 Agent → 回传响应 |
-| 1.4.2 | 实现 `Session` 管理 | ⬜ TODO | 创建/查找/恢复 Session，包含 AgentContext + 时间戳 |
-| 1.4.3 | 消息标准化 | ⬜ TODO | 将 Channel 原始输入转为内部 `Message(role, content, images, ...)` 格式 |
+| 1.4.1 | 实现 `Gateway.handle_message()` | ✅ DONE | 接收 Channel 消息 → 路由给 Agent → 回传响应 |
+| 1.4.2 | 实现 `Session` 管理 | ✅ DONE | 创建/查找/恢复 Session，包含 AgentContext + 时间戳 |
+| 1.4.3 | 消息标准化 | ✅ DONE | 将 Channel 原始输入转为内部 `Message(role, content, images, ...)` 格式 |
 
 ### M1.5 CLI 通道（PRD F6）
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 1.5.1 | 实现 `ChannelProtocol` 抽象接口 | ⬜ TODO | 定义 receive / send / confirm / confirm_critical 接口 |
-| 1.5.2 | 实现 `CLIChannel`（Rich + Prompt Toolkit） | ⬜ TODO | 美观终端交互，彩色区分：用户(白)/Agent(绿)/工具(黄)/错误(红) |
-| 1.5.3 | 流式输出展示（打字机效果） | ⬜ TODO | Agent 回复逐字显示（对接 chat_stream） |
-| 1.5.4 | 工具调用过程可视化 | ⬜ TODO | 展示 `[调用工具] xxx → [结果] yyy` |
-| 1.5.5 | 实现全部 9 个特殊命令 | ⬜ TODO | /help /tools /skills /history /clear /screen /config /reload /exit |
+| 1.5.1 | 实现 `ChannelProtocol` 抽象接口 | ✅ DONE | 定义 receive / send / confirm / confirm_critical 接口 |
+| 1.5.2 | 实现 `CLIChannel`（Rich + Prompt Toolkit） | ✅ DONE | 美观终端交互，彩色区分：用户(白)/Agent(绿)/工具(黄)/错误(红) |
+| 1.5.3 | 流式输出展示（打字机效果） | ✅ DONE | Agent 回复逐字显示（对接 chat_stream） |
+| 1.5.4 | 工具调用过程可视化 | ✅ DONE | 展示 `[调用工具] xxx → [结果] yyy` |
+| 1.5.5 | 实现全部 9 个特殊命令 | ✅ DONE | /help /tools /skills /history /clear /screen /config /reload /exit |
 
 ### M1.6 配置管理（PRD F9）
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 1.6.1 | Pydantic Settings 配置定义 | ⬜ TODO | 覆盖 PRD F9 完整 config.yaml：四模型角色 + 安全 + 浏览器 + 平台 + 日志 |
-| 1.6.2 | YAML 配置文件加载 | ⬜ TODO | 从 `~/.miniclaw/config.yaml` 加载，支持 `${ENV_VAR}` 变量替换 |
-| 1.6.3 | 首次运行引导 | ⬜ TODO | 交互式引导：检测配置文件 → 不存在则引导填写 API Key → 生成 config.yaml |
+| 1.6.1 | Pydantic Settings 配置定义 | ✅ DONE | 覆盖 PRD F9 完整 config.yaml：四模型角色 + 安全 + 浏览器 + 平台 + 日志 |
+| 1.6.2 | YAML 配置文件加载 | ✅ DONE | 从 `~/.miniclaw/config.yaml` 加载，支持 `${ENV_VAR}` 变量替换 |
+| 1.6.3 | 首次运行引导 | ✅ DONE | 交互式引导：检测配置文件 → 不存在则引导填写 API Key → 生成 config.yaml |
 
 ### M1 完成检查点 ✓
 
@@ -127,14 +127,14 @@
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 2.1 | Playwright 驱动封装 `playwright_driver.py` | ⬜ TODO | 统一 browser driver，管理浏览器生命周期（启动/复用/关闭） |
-| 2.2 | 内置工具：`browser_open` | ⬜ TODO | risk=high，打开指定 URL，使用系统 Chrome（channel="chrome"），返回页面标题和内容摘要 |
-| 2.3 | 内置工具：`browser_action` | ⬜ TODO | risk=high，点击（CSS选择器/文本）、输入、选择、滚动、等待元素 |
-| 2.4 | 内置工具：`page_screenshot` | ⬜ TODO | risk=low，截取页面截图（全页/指定区域），返回 base64 |
-| 2.5 | 网页内容提取 | ⬜ TODO | 提取页面核心文本，去除导航/广告噪音，结构化输出 |
-| 2.6 | `browser-research` Skill | ⬜ TODO | SKILL.md（调研 SOP）+ tools.py（浏览器调研高级封装） |
-| 2.7 | 浏览器复用机制 | ⬜ TODO | 多次操作复用同一浏览器实例，避免重复启动 |
-| 2.8 | 有头/无头模式切换 | ⬜ TODO | 从 config.yaml `browser.headless` 读取，默认 false（PRD Q3） |
+| 2.1 | Playwright 驱动封装 `playwright_driver.py` | ✅ DONE | 统一 browser driver，管理浏览器生命周期（启动/复用/关闭） |
+| 2.2 | 内置工具：`browser_open` | ✅ DONE | risk=high，打开指定 URL，使用系统 Chrome（channel="chrome"），返回页面标题和内容摘要 |
+| 2.3 | 内置工具：`browser_action` | ✅ DONE | risk=high，点击（CSS选择器/文本）、输入、选择、滚动、等待元素 |
+| 2.4 | 内置工具：`page_screenshot` | ✅ DONE | risk=low，截取页面截图（全页/指定区域），返回 base64 |
+| 2.5 | 网页内容提取 | ✅ DONE | 提取页面核心文本，去除导航/广告噪音，结构化输出 |
+| 2.6 | `browser-research` Skill | ✅ DONE | SKILL.md（调研 SOP）+ tools.py（浏览器调研高级封装） |
+| 2.7 | 浏览器复用机制 | ✅ DONE | 多次操作复用同一浏览器实例，避免重复启动 |
+| 2.8 | 有头/无头模式切换 | ✅ DONE | 从 config.yaml `browser.headless` 读取，默认 false（PRD Q3） |
 
 ### M2 完成检查点 ✓
 
@@ -249,11 +249,11 @@
 | 里程碑 | 任务数 | 完成数 | 进度 |
 |--------|--------|--------|------|
 | M0: 项目基建 | 10 | 10 | ███████████████ 100% |
-| M1: 能对话 | 28 | 28 | ███████████████ 100% |
-| M2: 能操控浏览器 | 8 | 0 | ░░░░░░░░░░░░░░░ 0% |
+| M1: 能对话 | 31 | 31 | ███████████████ 100% |
+| M2: 能操控浏览器 | 8 | 8 | ███████████████ 100% |
 | M3: 能操控桌面 | 11 | 0 | ░░░░░░░░░░░░░░░ 0% |
 | M4: 完整框架 | 14 | 0 | ░░░░░░░░░░░░░░░ 0% |
-| **总计** | **71** | **38** | **████████░░░░░░░ 54%** |
+| **总计** | **74** | **49** | **██████████░░░░░ 66%** |
 
 ---
 
