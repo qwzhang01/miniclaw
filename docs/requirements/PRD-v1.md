@@ -720,16 +720,194 @@ logging:
 
 ---
 
-### 4.3 第三优先级（P2）— v1 之后再做
+### 4.3 第三优先级（P2）— M5 多渠道 + 主动能力 + 生产化
+
+> **背景**：v1（M0-M4）已完成核心框架。M5 阶段借鉴 avin-kit/MiniClaw（V1 原型版本）中已验证的功能，
+> 补全多渠道接入、主动调度、Web UI、Docker 部署等生产化能力，使 MiniClaw 从"能用"走向"好用"。
+
+---
+
+#### F10: Telegram Bot 通道
+
+**目标**：在手机上给 MiniClaw 发消息，远程操控电脑。
+
+**功能要求**：
+- 使用 `python-telegram-bot>=21` 库接入 Telegram Bot API
+- 支持 `/start`、`/help`、`/clear`、`/status` Bot 命令
+- 普通文本消息直接转发给 Gateway → AgentLoop 处理
+- 长消息自动分段发送（Telegram 限制 4096 字符）
+- 支持主动推送（心跳提醒等场景通过 `bot.send_message()` 推送）
+- 发送「正在思考」typing 状态，提升用户体验
+- 通过 `TELEGRAM_BOT_TOKEN` 环境变量配置
+
+**实现要点**：
+- 复用现有 `ChannelProtocol` 抽象接口，新增 `TelegramChannel` 实现
+- Gateway 层无需改动，自动支持新通道
+- 多用户隔离：每个 Telegram `user_id` 维护独立 Session
+
+**配置**：
+```yaml
+channels:
+  telegram:
+    enabled: false
+    token: ${TELEGRAM_BOT_TOKEN}
+```
+
+---
+
+#### F11: Gradio Web UI
+
+**目标**：提供浏览器可访问的聊天界面，适合演示和日常使用。
+
+**功能要求**：
+- 基于 `gradio>=4.30` 构建聊天界面
+- 左侧聊天区 + 右侧状态面板（模型信息、工具列表、Skill 列表）
+- 内置示例问题（快速体验核心功能）
+- 刷新按钮查看实时状态（活跃用户数、消息计数、Token 统计）
+- 显示当前模型配置和温度参数
+
+**实现要点**：
+- 新增 `channels/gradio_channel.py`，实现 `ChannelProtocol`
+- Gradio 需同步包装异步调用（`asyncio.run` 桥接）
+- 默认端口 7860，支持配置
+
+**配置**：
+```yaml
+channels:
+  gradio:
+    enabled: false
+    port: 7860
+    share: false
+```
+
+---
+
+#### F12: 心跳调度 + Cron 定时任务
+
+**目标**：Agent 不只被动回复，还能主动行动 —— 定时提醒、定时巡检、每日总结。
+
+**功能要求**：
+- 使用 `apscheduler>=3.10` 异步调度器
+- 每分钟检查本地提醒列表（JSON 文件持久化），到期自动推送
+- 每天定时生成每日总结（可配置 cron 表达式）
+- 支持用户通过对话添加提醒（"提醒我明天下午3点开会"）
+- 支持自定义 cron 任务注册
+
+**实现要点**：
+- 新增 `scheduler/heartbeat.py`，封装 APScheduler
+- 新增内置工具 `calendar`（add / list / delete 提醒），risk=low
+- 提醒数据存储在 `~/.miniclaw/data/reminders.json`
+- 心跳回调接入 Channel 层（通过 Telegram / CLI 推送提醒）
+
+**配置**：
+```yaml
+scheduler:
+  heartbeat_enabled: true
+  heartbeat_cron: "0 9 * * *"    # 每天 9 点生成每日总结
+  reminder_check_interval: 60     # 每 60 秒检查提醒
+```
+
+---
+
+#### F13: 向量语义记忆（ChromaDB）
+
+**目标**：增强长期记忆能力，支持语义相似度检索，而不仅是关键词匹配。
+
+**功能要求**：
+- 集成 `chromadb>=0.5` 作为可选向量存储后端
+- 用户可通过对话主动保存记忆（"记住我喜欢用 Vim"）
+- Agent 每次对话前自动检索相关记忆，注入 system prompt
+- 支持 cosine distance 语义相似度排序
+- 按 `user_id` 隔离记忆空间
+
+**实现要点**：
+- 新增 `memory/vector_memory.py`，封装 ChromaDB
+- `MemoryManager` 统一管理：短期记忆（内存）+ 长期记忆（SQLite FTS5）+ 向量记忆（ChromaDB）
+- ChromaDB 作为可选依赖（`pip install miniclaw[vector]`），不安装时自动降级到 FTS5
+- 新增内置工具 `memory`（save / search / list_recent），risk=low
+
+**配置**：
+```yaml
+memory:
+  vector_enabled: false
+  chroma_persist_dir: ~/.miniclaw/data/chroma
+```
+
+---
+
+#### F14: Docker 一键部署
+
+**目标**：`docker compose up` 一键启动全部服务，适合服务器部署和快速体验。
+
+**功能要求**：
+- 提供 `Dockerfile`（多阶段构建，基于 `python:3.12-slim`）
+- 提供 `docker-compose.yml`，包含：
+  - `miniclaw-web`：Gradio Web UI 服务（默认启动）
+  - `miniclaw-telegram`：Telegram Bot 服务（可选 profile）
+- 数据目录 volume 挂载（`~/.miniclaw/data`）持久化
+- 健康检查 endpoint
+- 可选安装 Playwright 浏览器（构建参数 `INSTALL_BROWSER=true`）
+
+**Dockerfile 要点**：
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir .
+EXPOSE 7860
+CMD ["miniclaw", "--mode", "gradio"]
+```
+
+---
+
+#### F15: 多渠道同时运行
+
+**目标**：支持 CLI + Telegram + Gradio 同时运行，共享同一个 Gateway 和 AgentLoop。
+
+**功能要求**：
+- CLI 入口增加 `--mode` 参数：`cli`（默认）/ `telegram` / `gradio` / `all`
+- `all` 模式下所有渠道共享同一个 Gateway 实例
+- Gateway 层通过 `session_id` 前缀区分不同渠道的用户（`cli-xxx`、`tg-xxx`、`gradio-xxx`）
+- 所有渠道共享工具注册表、Skill、记忆系统
+
+**实现要点**：
+- `bootstrap.py` 扩展为按 mode 创建不同 Channel 组合
+- Gateway.handle_message() 已支持 `session_id` 参数，无需改动核心逻辑
+
+---
+
+#### F16: 代码执行沙箱（可选 Docker 隔离）
+
+**目标**：为代码执行工具提供更安全的沙箱环境。
+
+**功能要求**：
+- 新增 `code_exec` 工具，支持 Python 和 Shell 代码执行
+- 双轨安全机制：
+  - 正则危险模式检测（`rm -rf /`、`sudo`、`fork bomb` 等）
+  - 可选 Docker 容器隔离（无网络、内存限制 256MB、CPU 限制、进程数限制）
+- 代码执行超时限制（默认 30s）
+- risk=critical（需要用户输入 CONFIRM 确认）
+
+**配置**：
+```yaml
+security:
+  sandbox_enabled: false          # 是否启用 Docker 沙箱
+  code_exec_timeout: 30           # 代码执行超时（秒）
+```
+
+---
+
+#### 其他 P3 延后功能
 
 | 功能 | 说明 |
 |------|------|
-| **Telegram 通道** | 在手机上给 MiniClaw 发消息，远程操控电脑 |
-| **HTTP API 通道** | FastAPI WebSocket，支持前端 UI 或第三方集成 |
-| **Cron 定时任务** | 定时截屏检查、定时运维巡检、定时消息汇总 |
-| **Heartbeat 心跳** | Agent 定期主动巡检（借鉴 OpenClaw HEARTBEAT.md） |
 | **多 Agent 协作** | Supervisor 模式，一个 Agent 调度多个专业 Agent |
 | **企微 API 集成** | 通过企微机器人 API 直接收发消息（比截屏更稳定） |
+| **Windows 桌面支持** | 实现 WindowsController（只需加一个文件） |
+| **Token 费用估算** | 基于 token 计数的实时费用展示 |
+| **HTTP API 通道** | FastAPI WebSocket，支持前端 UI 或第三方集成 |
+| **RAG 文档问答** | 基于向量记忆的本地文档问答能力 |
+| **语音输入** | Whisper 语音识别，支持语音对话 |
 
 ---
 

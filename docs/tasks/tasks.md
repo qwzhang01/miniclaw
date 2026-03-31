@@ -260,20 +260,203 @@
 
 ---
 
-## M5+: 未来任务（v1 之后）— PRD §4.3
+## M5: 多渠道 + 主动能力 + 生产化（预计 10-14 天）
+
+> **背景**：M0-M4 已完成核心框架（CLI 对话 + 浏览器操控 + 桌面操控 + Skill + 记忆）。
+> M5 阶段借鉴 avin-kit/MiniClaw（V1 原型版本）中已验证的功能，补全多渠道接入、
+> 主动调度、Web UI、Docker 部署等生产化能力。
+>
+> **对应 PRD**：F10 ~ F16
+
+---
+
+### M5.1 Telegram Bot 通道（PRD F10，预计 2 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.1.1 | 新增 `channels/telegram_channel.py` 实现 `ChannelProtocol` | ⬜ TODO | 实现 receive/send/confirm/send_tool_call 四个接口，使用 `python-telegram-bot>=21` |
+| 5.1.2 | 实现 Telegram Bot 命令处理 | ⬜ TODO | 支持 `/start`（欢迎）、`/help`（帮助）、`/clear`（清空会话）、`/status`（Agent 状态） |
+| 5.1.3 | 实现普通文本消息处理 | ⬜ TODO | 文本消息 → `InboundMessage` → Gateway.handle_message() → 回复，发送 typing 状态 |
+| 5.1.4 | 长消息分段发送 | ⬜ TODO | 超过 4000 字符自动分段，每段独立发送 |
+| 5.1.5 | 多用户隔离 | ⬜ TODO | 每个 Telegram `user_id` 映射独立 Session（`tg-{user_id}`），不同用户互不干扰 |
+| 5.1.6 | 主动推送接口 | ⬜ TODO | 暴露 `send_to_user(user_id, text)` 方法，供心跳/提醒模块调用 |
+| 5.1.7 | Telegram 配置项 | ⬜ TODO | config.yaml 增加 `channels.telegram` 配置块，支持 `${TELEGRAM_BOT_TOKEN}` |
+| 5.1.8 | 添加 `python-telegram-bot>=21` 依赖 | ⬜ TODO | pyproject.toml 中作为可选依赖 `[telegram]` |
+
+**M5.1 完成检查点**：
+```
+□ TELEGRAM_BOT_TOKEN 配置后 miniclaw --mode telegram 能启动
+□ 手机发消息给 Bot 能收到 Agent 回复
+□ /start /help /clear /status 命令正常工作
+□ 两个不同 Telegram 用户的会话互不干扰
+□ Agent 回复超长文本时自动分段
+```
+
+---
+
+### M5.2 Gradio Web UI（PRD F11，预计 2 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.2.1 | 新增 `channels/gradio_channel.py` 实现 `ChannelProtocol` | ⬜ TODO | Gradio ChatInterface 封装，同步桥接异步调用 |
+| 5.2.2 | 新增 `ui/app.py` 构建 Gradio 应用 | ⬜ TODO | 左侧聊天区 + 右侧状态面板（模型/工具/Skill），Soft 主题，红色品牌色 |
+| 5.2.3 | 内置示例问题 | ⬜ TODO | 5 个示例：搜索新闻 / 写代码 / 设提醒 / 创建文件 / 截屏分析 |
+| 5.2.4 | 状态面板实时刷新 | ⬜ TODO | 点击"刷新"按钮更新：活跃用户数、总消息数、Token 统计、启动时间 |
+| 5.2.5 | Skill 列表展示 | ⬜ TODO | 右侧面板列出已加载 Skill 名称和描述 |
+| 5.2.6 | 添加 `gradio>=4.30` 依赖 | ⬜ TODO | pyproject.toml 中作为可选依赖 `[web]` |
+
+**M5.2 完成检查点**：
+```
+□ miniclaw --mode gradio 启动后浏览器打开 http://localhost:7860
+□ 在 Web 界面能正常与 Agent 对话
+□ 右侧面板显示模型配置和工具列表
+□ 示例问题点击后自动发送
+```
+
+---
+
+### M5.3 心跳调度 + Cron 定时任务（PRD F12，预计 2 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.3.1 | 新增 `scheduler/heartbeat.py` | ⬜ TODO | 封装 APScheduler AsyncIOScheduler，支持 IntervalTrigger 和 CronTrigger |
+| 5.3.2 | 提醒检查任务 | ⬜ TODO | 每分钟扫描 `~/.miniclaw/data/reminders.json`，到期提醒通过 Channel 推送 |
+| 5.3.3 | 每日总结任务 | ⬜ TODO | 可配置 cron 表达式（默认每天 9:00），调用 default 模型生成当日摘要 |
+| 5.3.4 | 自定义 cron 注册 | ⬜ TODO | 暴露 `add_cron_job(func, cron_expr, job_id)` API，解析 5 段 cron 格式 |
+| 5.3.5 | 内置工具：`calendar`（add/list/delete） | ⬜ TODO | risk=low，提醒数据 JSON 持久化，支持 ISO 8601 时间格式 |
+| 5.3.6 | 心跳回调接入 Channel | ⬜ TODO | 提醒到期时通过活跃 Channel（Telegram/CLI）推送消息 |
+| 5.3.7 | 配置项 | ⬜ TODO | config.yaml 增加 `scheduler` 配置块（enabled/cron/interval） |
+| 5.3.8 | 添加 `apscheduler>=3.10` 依赖 | ⬜ TODO | pyproject.toml 主依赖 |
+
+**M5.3 完成检查点**：
+```
+□ "提醒我 5 分钟后喝水" → 5 分钟后收到提醒消息
+□ /calendar list 能列出所有待办提醒
+□ 每日总结 cron 任务能定时触发
+□ Telegram 渠道能收到主动推送的提醒
+```
+
+---
+
+### M5.4 向量语义记忆（PRD F13，预计 1-2 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.4.1 | 新增 `memory/vector_memory.py` | ⬜ TODO | 封装 ChromaDB PersistentClient，支持 add/search/delete，cosine 相似度 |
+| 5.4.2 | 统一记忆管理器 `MemoryManager` | ⬜ TODO | 整合三层记忆：短期（内存）+ 长期（SQLite FTS5）+ 向量（ChromaDB），统一接口 |
+| 5.4.3 | 对话前记忆检索注入 | ⬜ TODO | AgentContext.build_messages() 前自动检索相关记忆，注入 system prompt |
+| 5.4.4 | 内置工具：`memory`（save/search/list_recent） | ⬜ TODO | risk=low，Agent 可主动保存重要信息到长期记忆 |
+| 5.4.5 | ChromaDB 作为可选依赖 | ⬜ TODO | `pip install miniclaw[vector]`，未安装时自动降级到 FTS5 |
+| 5.4.6 | 按 user_id 隔离记忆 | ⬜ TODO | ChromaDB where 条件按 user_id 过滤 |
+
+**M5.4 完成检查点**：
+```
+□ "记住我喜欢用 Vim" → 保存成功
+□ 下次对话 "我喜欢用什么编辑器" → 能检索到 Vim
+□ 未安装 ChromaDB 时自动降级到 FTS5，不报错
+```
+
+---
+
+### M5.5 Docker 一键部署（PRD F14，预计 1 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.5.1 | 编写 `Dockerfile` | ⬜ TODO | 多阶段构建，基于 python:3.12-slim，可选安装 Playwright（`INSTALL_BROWSER` 参数） |
+| 5.5.2 | 编写 `docker-compose.yml` | ⬜ TODO | 两个服务：miniclaw-web（Gradio，默认启动）+ miniclaw-telegram（可选 profile） |
+| 5.5.3 | 数据 volume 挂载 | ⬜ TODO | `~/.miniclaw/data` 挂载持久化，包含 SQLite + ChromaDB + reminders.json |
+| 5.5.4 | 健康检查 | ⬜ TODO | Dockerfile HEALTHCHECK + docker-compose healthcheck 配置 |
+| 5.5.5 | 环境变量注入 | ⬜ TODO | docker-compose 通过 `env_file: .env` 和 `environment` 注入配置 |
+
+**M5.5 完成检查点**：
+```
+□ docker compose up -d 一键启动
+□ http://localhost:7860 能访问 Gradio UI
+□ docker compose --profile telegram up 同时启动 Telegram Bot
+□ 重启容器后数据不丢失
+```
+
+---
+
+### M5.6 多渠道同时运行（PRD F15，预计 1 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.6.1 | CLI 入口增加 `--mode` 参数 | ⬜ TODO | 支持 `cli`（默认）/ `telegram` / `gradio` / `all` |
+| 5.6.2 | `all` 模式多渠道共享 Gateway | ⬜ TODO | 所有渠道共享同一个 Gateway/AgentLoop/ToolRegistry/Memory 实例 |
+| 5.6.3 | Session ID 渠道前缀隔离 | ⬜ TODO | CLI: `cli-default`，Telegram: `tg-{user_id}`，Gradio: `gradio-{session_id}` |
+| 5.6.4 | bootstrap.py 扩展 | ⬜ TODO | 按 mode 参数创建对应 Channel 组合，返回 (gateway, channels_list) |
+
+**M5.6 完成检查点**：
+```
+□ miniclaw --mode all 同时启动 CLI + Telegram + Gradio
+□ 三个渠道共享工具和 Skill 列表
+□ 不同渠道的用户会话互不干扰
+```
+
+---
+
+### M5.7 代码执行沙箱（PRD F16，预计 1 天）
+
+| # | 任务 | 状态 | 完成标准 |
+|---|------|------|---------|
+| 5.7.1 | 新增内置工具 `code_exec` | ⬜ TODO | risk=critical，支持 Python 和 Shell 代码执行，超时 30s |
+| 5.7.2 | 正则危险模式检测 | ⬜ TODO | 拦截 `rm -rf /`、`sudo`、`fork bomb`、`eval()`、`__import__()` 等 |
+| 5.7.3 | Docker 沙箱执行（可选） | ⬜ TODO | 配置 `sandbox_enabled=true` 时通过 Docker 容器执行（无网络/256MB/0.5CPU/50进程） |
+| 5.7.4 | 配置项 | ⬜ TODO | config.yaml `security.sandbox_enabled` + `security.code_exec_timeout` |
+
+**M5.7 完成检查点**：
+```
+□ "帮我写个斐波那契函数并运行" → 代码生成 + 执行 + 返回结果
+□ "rm -rf /" 被安全拦截
+□ 代码执行前需用户输入 CONFIRM 确认（risk=critical）
+□ sandbox_enabled=true 时使用 Docker 容器执行
+```
+
+---
+
+### M5 进度概览
+
+| 子任务 | 任务数 | 对应 PRD | 预计天数 |
+|--------|--------|---------|---------|
+| M5.1: Telegram Bot | 8 | F10 | 2 天 |
+| M5.2: Gradio Web UI | 6 | F11 | 2 天 |
+| M5.3: 心跳 + Cron | 8 | F12 | 2 天 |
+| M5.4: 向量记忆 | 6 | F13 | 1-2 天 |
+| M5.5: Docker 部署 | 5 | F14 | 1 天 |
+| M5.6: 多渠道运行 | 4 | F15 | 1 天 |
+| M5.7: 代码执行沙箱 | 4 | F16 | 1 天 |
+| **合计** | **41** | — | **10-14 天** |
+
+---
+
+### M5 建议开发顺序
+
+```
+第 1-2 天: M5.3 心跳 + Cron（核心功能，不依赖其他模块）
+第 3-4 天: M5.1 Telegram Bot（多渠道基础，需先验证 ChannelProtocol 扩展性）
+第 5-6 天: M5.2 Gradio Web UI（有了 Telegram 经验后快速复用）
+第 7 天:   M5.6 多渠道同时运行（串联 M5.1 + M5.2）
+第 8-9 天: M5.4 向量记忆（独立模块，随时可做）
+第 10 天:  M5.7 代码执行沙箱（安全增强）
+第 11 天:  M5.5 Docker 部署（打包发布，最后做）
+```
+
+---
+
+## M6+: 未来任务（M5 之后）— PRD §4.3 P3
 
 | # | 任务 | 优先级 | 说明 |
 |---|------|--------|------|
-| 5.1 | Telegram 通道 | P2 | 手机远程操控电脑 |
-| 5.2 | HTTP API 通道 | P2 | FastAPI WebSocket，支持前端 UI |
-| 5.3 | Cron 定时任务 | P2 | 定时截屏巡检、消息汇总 |
-| 5.4 | Heartbeat 心跳 | P2 | Agent 主动巡检机制（v1 已预留接口） |
-| 5.5 | 多 Agent 协作 | P3 | Supervisor 调度模式 |
-| 5.6 | 企微 API 集成 | P2 | 通过机器人 API 直接收发消息 |
-| 5.7 | Windows 支持 | P2 | 实现 WindowsController（只需加一个文件） |
-| 5.8 | 向量检索记忆 | P3 | ChromaDB 本地向量搜索（替代 FTS5） |
-| 5.9 | Web UI | P3 | 可视化管理界面 |
-| 5.10 | Token 费用估算 | P3 | 基于 token 计数的实时费用展示 |
+| 6.1 | 多 Agent 协作 | P3 | Supervisor 调度模式 |
+| 6.2 | 企微 API 集成 | P3 | 通过机器人 API 直接收发消息 |
+| 6.3 | Windows 支持 | P3 | 实现 WindowsController（只需加一个文件） |
+| 6.4 | Token 费用估算 | P3 | 基于 token 计数的实时费用展示 |
+| 6.5 | HTTP API 通道 | P3 | FastAPI WebSocket，支持前端 UI 或第三方集成 |
+| 6.6 | RAG 文档问答 | P3 | 基于向量记忆的本地文档问答 |
+| 6.7 | 语音输入 | P3 | Whisper 语音识别 |
+| 6.8 | 技能市场 Hub | P3 | 在线分享和下载自定义 Skill |
+| 6.9 | 可视化工作区 | P3 | WebCanvas 风格的任务执行可视化 |
 
 ---
 
@@ -286,7 +469,8 @@
 | M2: 能操控浏览器 | 8 | 8 | ███████████████ 100% |
 | M3: 能操控桌面 | 11 | 11 | ███████████████ 100% |
 | M4: 完整框架 | 14 | 12 | █████████████░░ 86% |
-| **总计** | **76** | **74** | **██████████████░ 97%** |
+| M5: 多渠道+主动+生产化 | 41 | 0 | ░░░░░░░░░░░░░░░ 0% |
+| **总计** | **117** | **74** | **█████████░░░░░░ 63%** |
 
 ---
 
@@ -304,5 +488,12 @@
 | F7: Skill 系统 | P1 | M4.1 (4.1.1-4.1.5) | ✅ 已覆盖（含 /reload + 工具共存规则） |
 | F8: 记忆系统 | P1 | M4.2 (4.2.1-4.2.4) | ✅ 已覆盖（含 default 模型摘要） |
 | F9: 配置管理 | P1 | M1.6 (1.6.1-1.6.3) | ✅ 已覆盖 |
+| F10: Telegram Bot | P2 | M5.1 (5.1.1-5.1.8) | ⬜ 待开发 |
+| F11: Gradio Web UI | P2 | M5.2 (5.2.1-5.2.6) | ⬜ 待开发 |
+| F12: 心跳 + Cron | P2 | M5.3 (5.3.1-5.3.8) | ⬜ 待开发 |
+| F13: 向量语义记忆 | P2 | M5.4 (5.4.1-5.4.6) | ⬜ 待开发 |
+| F14: Docker 部署 | P2 | M5.5 (5.5.1-5.5.5) | ⬜ 待开发 |
+| F15: 多渠道运行 | P2 | M5.6 (5.6.1-5.6.4) | ⬜ 待开发 |
+| F16: 代码执行沙箱 | P2 | M5.7 (5.7.1-5.7.4) | ⬜ 待开发 |
 | §5.3: 可观测性 | — | M0.9 + M1.1.7 | ✅ 已覆盖（日志 + token） |
 | §3.7: 端到端集成 | — | M1.7 (1.7.1-1.7.2) | ✅ 已覆盖（bootstrap 组装层） |
