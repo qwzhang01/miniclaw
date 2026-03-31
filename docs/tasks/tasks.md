@@ -188,29 +188,29 @@
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 4.1.1 | Skill 加载器完善 | ⬜ TODO | 扫描 3 个目录（内置/全局/项目），解析 SKILL.md，注册 Skill 工具；支持 `/reload` 手动重载 |
-| 4.1.2 | Skill 匹配器 | ⬜ TODO | 关键词 + LLM 意图判断，自动激活相关 Skill，动态注入 Skill 工具到 tools 列表 |
-| 4.1.3 | `shell` Skill | ⬜ TODO | SKILL.md（系统管理 SOP）+ 工具（进程管理、文件操作高级封装） |
-| 4.1.4 | `coder` Skill | ⬜ TODO | SKILL.md（编程助手 SOP）+ 工具（代码分析、run_tests、git 操作） |
-| 4.1.5 | `github` Skill | ⬜ TODO | SKILL.md（GitHub 操作 SOP）+ 工具（Issue/PR 管理，依赖 gh CLI） |
+| 4.1.1 | Skill 加载器完善 | ✅ DONE | 扫描 3 个目录（内置/全局/项目），解析 SKILL.md，注册 Skill 工具；支持 `/reload` 手动重载 |
+| 4.1.2 | Skill 匹配器 | ✅ DONE | 关键词 + LLM 意图判断，自动激活相关 Skill，动态注入 Skill 工具到 tools 列表 |
+| 4.1.3 | `shell` Skill | ✅ DONE | SKILL.md（系统管理 SOP）+ 工具（进程管理、文件操作高级封装） |
+| 4.1.4 | `coder` Skill | ✅ DONE | SKILL.md（编程助手 SOP）+ 工具（代码分析、run_tests、git 操作） |
+| 4.1.5 | `github` Skill | ✅ DONE | SKILL.md（GitHub 操作 SOP）+ 工具（Issue/PR 管理，依赖 gh CLI） |
 
 ### M4.2 记忆系统（PRD F8）
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 4.2.1 | 短期记忆 `short_term.py` | ⬜ TODO | 内存中维护当前会话的对话历史（Message 列表） |
-| 4.2.2 | 长期记忆 `long_term.py` | ⬜ TODO | SQLite FTS5 全文搜索，跨会话持久化用户偏好和重要信息 |
-| 4.2.3 | 上下文窗口管理 | ⬜ TODO | 历史接近 token 上限时，调用 `default` 模型自动摘要压缩（省钱优先） |
-| 4.2.4 | 会话持久化 | ⬜ TODO | Session 数据存入 SQLite，退出后下次可继续上次对话 |
+| 4.2.1 | 短期记忆 `short_term.py` | ✅ DONE | 内存中维护当前会话的对话历史（Message 列表） |
+| 4.2.2 | 长期记忆 `long_term.py` | ✅ DONE | SQLite FTS5 全文搜索，跨会话持久化用户偏好和重要信息 |
+| 4.2.3 | 上下文窗口管理 | ✅ DONE | 历史接近 token 上限时，调用 `default` 模型自动摘要压缩（省钱优先） |
+| 4.2.4 | 会话持久化 | ✅ DONE | Session 数据存入 SQLite，退出后下次可继续上次对话 |
 
 ### M4.3 文档 & 发布（PRD §8）
 
 | # | 任务 | 状态 | 完成标准 |
 |---|------|------|---------|
-| 4.3.1 | README 最终打磨 | ⬜ TODO | 包含 demo GIF、完整 Quick Start、对比表格、架构图 |
+| 4.3.1 | README 最终打磨 | ✅ DONE | 包含 demo GIF、完整 Quick Start、对比表格、架构图 |
 | 4.3.2 | 录制 demo GIF / 视频 | ⬜ TODO | 至少 2 个：① 浏览器调研 ② 截屏看企微消息 |
-| 4.3.3 | 编写 CONTRIBUTING.md | ⬜ TODO | 贡献指南（开发环境搭建、代码规范、PR 流程） |
-| 4.3.4 | PyPI 发布配置 | ⬜ TODO | pyproject.toml 完善，`pip install miniclaw` 可用 |
+| 4.3.3 | 编写 CONTRIBUTING.md | ✅ DONE | 贡献指南（开发环境搭建、代码规范、PR 流程） |
+| 4.3.4 | PyPI 发布配置 | ✅ DONE | pyproject.toml 完善，`pip install miniclaw` 可用 |
 | 4.3.5 | GitHub Release v0.1.0 | ⬜ TODO | 打 tag、写 changelog、发布 Release |
 
 ### M4 完成检查点 ✓
@@ -252,8 +252,8 @@
 | M1: 能对话 | 31 | 31 | ███████████████ 100% |
 | M2: 能操控浏览器 | 8 | 8 | ███████████████ 100% |
 | M3: 能操控桌面 | 11 | 11 | ███████████████ 100% |
-| M4: 完整框架 | 14 | 0 | ░░░░░░░░░░░░░░░ 0% |
-| **总计** | **74** | **60** | **████████████░░░ 81%** |
+| M4: 完整框架 | 14 | 12 | █████████████░░ 86% |
+| **总计** | **74** | **72** | **██████████████░ 97%** |
 
 ---
 
