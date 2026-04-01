@@ -50,6 +50,14 @@ async def _async_main(debug: bool) -> None:
         console.print("[dim]请检查 ~/.miniclaw/config.yaml 和 .env 配置[/dim]")
         return
 
+    # OP5.1: 初始化长期记忆（异步）
+    if gateway.long_term_memory:
+        try:
+            await gateway.long_term_memory.init()
+        except Exception as e:
+            logger.warning("长期记忆初始化失败，将禁用", error=str(e))
+            gateway.long_term_memory = None
+
     logger.info("MiniClaw 就绪，进入交互循环")
     console.print()
 
@@ -81,6 +89,9 @@ async def _async_main(debug: bool) -> None:
 
     except KeyboardInterrupt:
         console.print("\n[dim]👋 再见！[/dim]")
+    finally:
+        # OP5.2: 退出时保存会话 + 关闭长期记忆
+        await gateway.shutdown()
 
 
 def _show_help() -> None:

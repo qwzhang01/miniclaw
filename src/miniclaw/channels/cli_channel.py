@@ -20,7 +20,11 @@ class CLIChannel(ChannelProtocol):
     """CLI 通道 — Rich 美化终端交互
 
     彩色区分：用户(白) / Agent(绿) / 工具(黄) / 错误(红)
+    支持 OP6.3 流式逐 token 输出。
     """
+
+    def __init__(self) -> None:
+        self._stream_started = False
 
     async def receive(self) -> str | None:
         """接收用户输入"""
@@ -88,3 +92,18 @@ class CLIChannel(ChannelProtocol):
             return answer.strip().lower() in ("y", "yes")
         except (EOFError, KeyboardInterrupt):
             return False
+
+    async def send_stream_chunk(self, text: str) -> None:
+        """流式输出片段（OP6.3 真正的逐 token 打字机效果）"""
+        if not self._stream_started:
+            # 首个 chunk：输出前缀
+            console.print("[green]🦞 [/green]", end="")
+            self._stream_started = True
+        # 逐片段输出（不换行）
+        console.print(f"[green]{text}[/green]", end="")
+
+    async def send_stream_end(self) -> None:
+        """流式输出结束（OP6.3）"""
+        if self._stream_started:
+            console.print()  # 换行
+            self._stream_started = False

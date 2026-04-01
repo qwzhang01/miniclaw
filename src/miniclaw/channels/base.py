@@ -50,3 +50,15 @@ class ChannelProtocol(ABC):
         critical → 用户输入 CONFIRM
         """
         ...
+
+    async def send_stream_chunk(self, text: str) -> None:
+        """发送流式输出片段（OP6.3）
+
+        默认无操作，子类可覆写实现逐 token 输出。
+        """
+
+    async def send_stream_end(self) -> None:
+        """流式输出结束标记（OP6.3）
+
+        默认无操作，子类可覆写实现换行等操作。
+        """

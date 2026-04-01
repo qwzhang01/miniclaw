@@ -1,6 +1,6 @@
 # MiniClaw 代码约束规范
 
-> 版本：v1.1 ｜ 日期：2026-03-29 ｜ 作者：avinzhang
+> 版本：v1.2 ｜ 日期：2026-04-01 ｜ 作者：avinzhang
 >
 > 本文档定义 MiniClaw 项目的所有代码规范和约束，所有代码必须遵守。
 > 以 [PRD-v1](../requirements/PRD-v1.md) 为唯一真相源。
@@ -204,6 +204,34 @@ async def shell_exec(command: str) -> str:
 - 全局内置工具在 ToolRegistry 中始终存在
 - Skill 工具仅在 Skill 激活时注入当前轮次的 tools 列表
 - 同名冲突：Skill 工具优先覆盖全局工具
+- Skill 激活后，其 SKILL.md 中的角色定义和工作流程必须注入 system prompt
+```
+
+### 3.6 上下文管理约束
+
+```
+所有消息管理必须通过 ShortTermMemory，不允许直接操作 messages 列表。
+
+- AgentContext.messages 委托给 ShortTermMemory 实例管理
+- 每轮 AgentLoop 开始前必须检查 needs_compression()
+- 压缩使用 default 模型（省钱优先），保留 system prompt + 摘要 + 最近 4 条
+- 工具输出超过阈值（默认 8000 字符）必须截断
+```
+
+### 3.7 系统提示词约束
+
+```
+系统提示词必须动态拼装，包含以下段落：
+
+1. 身份定位（固定文本）
+2. 环境信息（OS / CWD / 时间，每次动态生成）
+3. 完整工具列表（从 ToolRegistry 自动生成，按能力域分组）
+4. 行为准则（固定文本）
+5. 活跃 Skill 上下文（可选，Skill 激活时注入）
+
+禁止：
+- 在系统提示词中硬编码工具列表（必须从注册中心动态获取）
+- 遗漏任何已注册工具的描述
 ```
 
 ---

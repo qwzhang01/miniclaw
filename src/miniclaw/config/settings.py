@@ -65,6 +65,13 @@ class LoggingConfig(BaseModel):
     file: str = str(Path.home() / ".miniclaw" / "logs" / "miniclaw.log")
 
 
+class AgentConfig(BaseModel):
+    """Agent 配置（OP3.2）"""
+
+    tool_output_max_chars: int = 8000  # 工具输出最大字符数
+    max_context_tokens: int = 32000    # 上下文窗口最大 token 数
+
+
 class MiniClawConfig(BaseModel):
     """MiniClaw 完整配置"""
 
@@ -76,6 +83,7 @@ class MiniClawConfig(BaseModel):
     browser: BrowserConfig = BrowserConfig()
     platform: PlatformConfig = PlatformConfig()
     logging: LoggingConfig = LoggingConfig()
+    agent: AgentConfig = AgentConfig()
 
 
 def _resolve_env_vars(value: str) -> str:
@@ -136,6 +144,7 @@ def load_config(config_path: Path | None = None) -> MiniClawConfig:
             browser=BrowserConfig(**data.get("browser", {})),
             platform=PlatformConfig(**data.get("platform", {})),
             logging=LoggingConfig(**data.get("logging", {})),
+            agent=AgentConfig(**data.get("agent", {})),
         )
         logger.info("配置已加载", path=str(path))
         return config

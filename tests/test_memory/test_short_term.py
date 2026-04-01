@@ -71,3 +71,21 @@ class TestShortTermMemory:
         mem = ShortTermMemory()
         mem.add({"role": "user", "content": "x" * 300})
         assert mem.estimated_tokens == 100  # 300 / 3
+
+    def test_update_system_prompt(self):
+        """更新系统提示词替换 messages[0]"""
+        mem = ShortTermMemory()
+        mem.add({"role": "system", "content": "旧提示词"})
+        mem.add({"role": "user", "content": "hello"})
+        mem.update_system_prompt("新提示词")
+        assert mem.messages[0]["content"] == "新提示词"
+        assert mem.message_count == 2  # 没有新增
+
+    def test_update_system_prompt_no_system(self):
+        """没有 system 消息时插入到开头"""
+        mem = ShortTermMemory()
+        mem.add({"role": "user", "content": "hello"})
+        mem.update_system_prompt("插入的提示词")
+        assert mem.messages[0]["role"] == "system"
+        assert mem.messages[0]["content"] == "插入的提示词"
+        assert mem.message_count == 2  # 插入了一条

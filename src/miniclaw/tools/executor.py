@@ -1,9 +1,10 @@
 """
 MiniClaw - 工具执行引擎
 
-完整流程：参数校验 → 安全审批 → 执行 → 格式化结果 → 返回 ToolResult。
+完整流程：参数校验 → 安全审批 → 执行 → 格式化结果 → 输出截断 → 返回 ToolResult。
 支持三级安全审批：low=自动 / high=确认 / critical=二次确认。
 用户拒绝时返回标准化结果，不中断 Agent Loop。
+OP3.1: 工具输出超过阈值时自动截断。
 
 对应 PRD：F3 工具系统
 """
@@ -20,6 +21,8 @@ logger = get_logger(__name__)
 
 # 工具执行默认超时（秒）
 DEFAULT_TIMEOUT = 30
+# OP3.1: 工具输出默认最大字符数
+DEFAULT_MAX_OUTPUT_CHARS = 8000
 
 
 @dataclass
@@ -40,6 +43,17 @@ async def _auto_approve(name: str, desc: str, risk: RiskLevel) -> bool:
     return risk == RiskLevel.LOW
 
 
+def _truncate_output(output: str, max_chars: int) -> str:
+    """截断过长的工具输出（OP3.1）
+
+    超过 max_chars 时截断并附加提示信息。
+    """
+    if len(output) <= max_chars:
+        return output
+    truncated = output[:max_chars]
+    return f"{truncated}\n\n...[输出已截断，原始共 {len(output)} 字符，仅显示前 {max_chars} 字符]"
+
+
 class ToolExecutor:
     """工具执行引擎
 
@@ -49,11 +63,13 @@ class ToolExecutor:
     3. 安全审批（通过 Channel 回调）
     4. 执行工具
     5. 格式化结果
+    6. 输出截断（OP3.1）
 
     Attributes:
         registry: 工具注册中心
         approval_callback: 审批回调（由 Channel 提供）
         timeout: 执行超时（秒）
+        max_output_chars: 工具输出最大字符数（OP3.1）
     """
 
     def __init__(
@@ -61,10 +77,12 @@ class ToolExecutor:
         registry: ToolRegistry,
         approval_callback: ApprovalCallback | None = None,
         timeout: int = DEFAULT_TIMEOUT,
+        max_output_chars: int = DEFAULT_MAX_OUTPUT_CHARS,
     ) -> None:
         self.registry = registry
         self.approval_callback = approval_callback or _auto_approve
         self.timeout = timeout
+        self.max_output_chars = max_output_chars
 
     async def execute(
         self,
@@ -118,10 +136,12 @@ class ToolExecutor:
                 self._run_tool(tool_info, arguments),
                 timeout=self.timeout,
             )
+            # OP3.1: 截断过长输出
+            output = _truncate_output(str(result), self.max_output_chars)
             logger.info("工具执行成功", tool=tool_name)
             return ToolResult(
                 success=True,
-                output=str(result),
+                output=output,
                 tool_name=tool_name,
             )
         except TimeoutError:

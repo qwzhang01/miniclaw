@@ -22,6 +22,10 @@ from miniclaw.llm.anthropic_provider import AnthropicProvider
 from miniclaw.llm.base import BaseProvider
 from miniclaw.llm.openai_provider import OpenAIProvider
 from miniclaw.llm.registry import ModelRoleRegistry
+from miniclaw.memory.long_term import LongTermMemory
+from miniclaw.memory.short_term import ShortTermMemory
+from miniclaw.skills.loader import SkillLoader
+from miniclaw.skills.matcher import SkillMatcher
 from miniclaw.tools.builtin import register_all_builtin_tools
 from miniclaw.tools.executor import ToolExecutor
 from miniclaw.tools.registry import get_global_registry
@@ -119,27 +123,41 @@ def bootstrap(config_path: Path | None = None) -> tuple[Gateway, ChannelProtocol
     tool_registry = get_global_registry()
     logger.info("工具已注册", tools=tool_registry.tool_names)
 
-    # 5. 创建 Channel
+    # 5. 加载 Skill（OP4.2: 创建 SkillMatcher 供 AgentLoop 使用）
+    skill_loader = SkillLoader()
+    skills = skill_loader.load_all()
+    skill_matcher = SkillMatcher(skills) if skills else None
+
+    # 6. 创建 Channel
     channel = CLIChannel()
 
-    # 6. 创建 ToolExecutor（审批回调接入 Channel）
+    # 7. 创建 ToolExecutor（审批回调接入 Channel，OP3.2 使用配置阈值）
     tool_executor = ToolExecutor(
         registry=tool_registry,
         approval_callback=channel.confirm,
+        max_output_chars=config.agent.tool_output_max_chars,
     )
 
-    # 7. 创建 AgentLoop
+    # 8. 创建 AgentLoop（OP4.2: 传入 SkillMatcher）
     agent_loop = AgentLoop(
         llm_registry=llm_registry,
         tool_executor=tool_executor,
         model_router=ModelRouter(),
+        skill_matcher=skill_matcher,
     )
 
-    # 8. 创建 Gateway
-    session_manager = SessionManager(tool_registry=tool_registry)
+    # 9. 创建 LongTermMemory（OP5.1: 延迟初始化，需在 async 上下文中调用 init）
+    long_term_memory = LongTermMemory()
+
+    # 10. 创建 Gateway（OP2.3 + OP5.1: 注入 LongTermMemory）
+    session_manager = SessionManager(
+        tool_registry=tool_registry,
+        max_context_tokens=config.agent.max_context_tokens,
+    )
     gateway = Gateway(
         agent_loop=agent_loop,
         session_manager=session_manager,
+        long_term_memory=long_term_memory,
     )
 
     return gateway, channel

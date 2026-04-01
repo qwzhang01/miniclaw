@@ -2,6 +2,7 @@
 MiniClaw - 会话管理
 
 创建/查找/恢复 Session，包含 AgentContext + 时间戳。
+OP2.3: 创建 AgentContext 时注入 ShortTermMemory 实例。
 
 对应 PRD：F6.5 Gateway 消息网关
 """
@@ -10,6 +11,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from miniclaw.agent.context import AgentContext
+from miniclaw.memory.short_term import ShortTermMemory
 from miniclaw.tools.registry import ToolRegistry
 
 
@@ -31,11 +33,17 @@ class SessionManager:
     """会话管理器
 
     v1 单用户模式，只维护一个活跃会话。
+    OP2.3: 创建会话时为 AgentContext 注入 ShortTermMemory。
     """
 
-    def __init__(self, tool_registry: ToolRegistry) -> None:
+    def __init__(
+        self,
+        tool_registry: ToolRegistry,
+        max_context_tokens: int = 32000,
+    ) -> None:
         self._sessions: dict[str, Session] = {}
         self._tool_registry = tool_registry
+        self._max_context_tokens = max_context_tokens
 
     def get_or_create(self, session_id: str) -> Session:
         """获取已有会话或创建新会话"""
@@ -44,7 +52,12 @@ class SessionManager:
             session.touch()
             return session
 
-        context = AgentContext(tool_registry=self._tool_registry)
+        # OP2.3: 创建 ShortTermMemory 实例并注入 AgentContext
+        stm = ShortTermMemory(max_tokens=self._max_context_tokens)
+        context = AgentContext(
+            tool_registry=self._tool_registry,
+            short_term_memory=stm,
+        )
         session = Session(id=session_id, context=context)
         self._sessions[session_id] = session
         return session

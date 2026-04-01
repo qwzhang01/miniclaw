@@ -1,6 +1,6 @@
 # MiniClaw 开发任务
 
-> 版本：v1.1 ｜ 日期：2026-03-29 ｜ 作者：avinzhang
+> 版本：v1.2 ｜ 日期：2026-04-01 ｜ 作者：avinzhang
 >
 > 按里程碑组织，每个任务有明确的完成标准。
 > 以 [PRD-v1](../requirements/PRD-v1.md) 为唯一真相源，所有任务可追溯到 PRD 需求。
@@ -260,6 +260,98 @@
 
 ---
 
+## OP: 架构优化 — 借鉴 Claude Code 模式（预计 4 天）
+
+> **背景**：基于 Claude Code 512K 行泄露源码的架构分析，识别出 MiniClaw 的 7 个关键优化点。
+> 详细分析见 [optimization-plan.md](./optimization-plan.md)。
+>
+> **核心问题**：多个 M4 任务代码已写好但未真正接入（ShortTermMemory、LongTermMemory、Skill 注入），
+> System Prompt 与实际工具不匹配，长对话无 token 保护。
+
+---
+
+### OP1: System Prompt 全面升级 [P0]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP1.1 | 补全系统提示词工具描述 | ✅ DONE | 列出全部 11 个内置工具，按能力域分组 |
+| OP1.2 | 注入环境上下文信息 | ✅ DONE | 动态注入 OS/CWD/时间/Python 版本 |
+| OP1.3 | 添加行为约束指令 | ✅ DONE | 优先低风险工具、文件操作前检查路径 |
+| OP1.4 | 系统提示词模板化 | ✅ DONE | 支持动态拼装（环境 + 工具 + Skill） |
+
+### OP2: ShortTermMemory 接入 AgentContext [P0]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP2.1 | AgentContext 集成 ShortTermMemory | ✅ DONE | 消息管理委托给 ShortTermMemory |
+| OP2.2 | AgentLoop 压缩触发点 | ✅ DONE | 每轮循环前检查 needs_compression() |
+| OP2.3 | bootstrap.py 创建 ShortTermMemory | ✅ DONE | 创建实例并注入 AgentContext |
+
+### OP3: 工具输出截断 [P1]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP3.1 | 工具输出最大长度限制 | ✅ DONE | 超 8000 字符截断 + 提示 |
+| OP3.2 | 可配置截断阈值 | ✅ DONE | config.yaml 增加 agent.tool_output_max_chars |
+| OP3.3 | read_file 增加行数限制参数 | ✅ DONE | 默认 200 行，超过提示分段 |
+
+### OP4: Skill 提示词注入 [P1]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP4.1 | AgentContext 增加 Skill 上下文注入 | ✅ DONE | inject_skill_context() 追加到 system prompt |
+| OP4.2 | AgentLoop 匹配后触发注入 | ✅ DONE | Skill 激活时调用注入 |
+| OP4.3 | Skill 上下文随 /clear 清除 | ✅ DONE | 清空时同步清除 Skill 内容 |
+
+### OP5: LongTermMemory 接入 [P2]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP5.1 | bootstrap.py 初始化 LongTermMemory | ✅ DONE | 创建实例 + await init() |
+| OP5.2 | Gateway 退出时保存会话 | ✅ DONE | /exit 时调用 save_session() |
+| OP5.3 | Gateway 启动时恢复会话 | ✅ DONE | --continue 参数恢复上次对话 |
+| OP5.4 | 记忆检索注入对话 | ✅ DONE | 新对话开始时检索相关记忆注入 system prompt |
+
+### OP6: 流式输出接入 AgentLoop [P2]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP6.1 | AgentLoop 增加 stream 模式 | ✅ DONE | 使用 chat_stream() 替代 chat() |
+| OP6.2 | 流式工具调用解析 | ✅ DONE | 正确累积并解析流式工具调用 |
+| OP6.3 | CLIChannel 真正流式渲染 | ✅ DONE | 对接流式回调，逐 token 输出 |
+
+### OP7: Token 预算管理 [P2]
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| OP7.1 | AgentContext 增加 token 统计 | ✅ DONE | 每次添加消息后累计 token 数 |
+| OP7.2 | AgentLoop 预算检查 | ✅ DONE | 接近上限时触发压缩或警告 |
+| OP7.3 | Debug 日志输出 token 预算 | ✅ DONE | --debug 输出已用/上限/剩余 |
+
+### OP 进度概览
+
+| 优化项 | 任务数 | 优先级 | 预计天数 |
+|--------|--------|--------|---------|
+| OP1: System Prompt 升级 | 4 | P0 | 0.5 天 |
+| OP2: ShortTermMemory 接入 | 3 | P0 | 0.5 天 |
+| OP3: 工具输出截断 | 3 | P1 | 0.5 天 |
+| OP4: Skill 提示注入 | 3 | P1 | 0.5 天 |
+| OP5: LongTermMemory 接入 | 4 | P2 | 1 天 |
+| OP6: 流式输出接入 | 3 | P2 | 1 天 |
+| OP7: Token 预算管理 | 3 | P2 | 0.5 天 |
+| **合计** | **23** | — | **~4 天** |
+
+### OP 建议开发顺序
+
+```
+第 1 天: OP1（System Prompt 升级）+ OP2（ShortTermMemory 接入）← P0 必须先做
+第 2 天: OP3（工具输出截断）+ OP4（Skill 提示注入）← P1 让已写代码生效
+第 3 天: OP5（LongTermMemory 接入）+ OP7（Token 预算管理）← P2 增强
+第 4 天: OP6（流式输出接入）← P2 体验提升
+```
+
+---
+
 ## M5: 多渠道 + 主动能力 + 生产化（预计 10-14 天）
 
 > **背景**：M0-M4 已完成核心框架（CLI 对话 + 浏览器操控 + 桌面操控 + Skill + 记忆）。
@@ -469,8 +561,9 @@
 | M2: 能操控浏览器 | 8 | 8 | ███████████████ 100% |
 | M3: 能操控桌面 | 11 | 11 | ███████████████ 100% |
 | M4: 完整框架 | 14 | 12 | █████████████░░ 86% |
+| OP: 架构优化 | 23 | 23 | ███████████████ 100% |
 | M5: 多渠道+主动+生产化 | 41 | 0 | ░░░░░░░░░░░░░░░ 0% |
-| **总计** | **117** | **74** | **█████████░░░░░░ 63%** |
+| **总计** | **140** | **97** | **██████████░░░░░ 69%** |
 
 ---
 
@@ -497,3 +590,20 @@
 | F16: 代码执行沙箱 | P2 | M5.7 (5.7.1-5.7.4) | ⬜ 待开发 |
 | §5.3: 可观测性 | — | M0.9 + M1.1.7 | ✅ 已覆盖（日志 + token） |
 | §3.7: 端到端集成 | — | M1.7 (1.7.1-1.7.2) | ✅ 已覆盖（bootstrap 组装层） |
+
+---
+
+## 架构优化覆盖检查
+
+> 基于 Claude Code 泄露源码分析，识别出的 MiniClaw 优化点。
+> 详细分析文档：[optimization-plan.md](./optimization-plan.md)
+
+| 优化点 | 优先级 | 覆盖任务 | 状态 |
+|--------|--------|---------|------|
+| System Prompt 与实际工具不匹配 | P0 | OP1 (OP1.1-OP1.4) | ✅ 已完成 |
+| ShortTermMemory 未接入 AgentContext | P0 | OP2 (OP2.1-OP2.3) | ✅ 已完成 |
+| 工具输出无截断保护 | P1 | OP3 (OP3.1-OP3.3) | ✅ 已完成 |
+| Skill SKILL.md 内容未注入 prompt | P1 | OP4 (OP4.1-OP4.3) | ✅ 已完成 |
+| LongTermMemory 未初始化 | P2 | OP5 (OP5.1-OP5.4) | ✅ 已完成 |
+| 流式输出未接入 AgentLoop | P2 | OP6 (OP6.1-OP6.3) | ✅ 已完成 |
+| Token 预算无感知 | P2 | OP7 (OP7.1-OP7.3) | ✅ 已完成 |

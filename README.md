@@ -331,6 +331,7 @@ risk_level="critical" → 二次确认（rm -rf, 发送消息）
 - [x] 🌐 **M2**: 浏览器操控（Playwright）
 - [x] 🖥️ **M3**: 桌面操控（截屏 + 视觉理解 + 鼠标键盘）
 - [ ] 📦 **M4**: 完整框架 + 文档 + 发布 PyPI
+- [ ] 🔧 **OP**: 架构优化（借鉴 Claude Code 模式：上下文压缩、System Prompt 升级、工具输出治理）
 - [ ] 📱 **未来**: Telegram 通道、Cron 定时任务、多 Agent 协作
 
 ## 🔧 技术栈
@@ -353,6 +354,7 @@ risk_level="critical" → 二次确认（rm -rf, 发送消息）
 - [架构设计](docs/architecture/architecture.md)
 - [代码规范](docs/conventions/conventions.md)
 - [开发任务](docs/tasks/tasks.md)
+- [架构优化计划](docs/tasks/optimization-plan.md)
 
 ## 🤝 贡献
 

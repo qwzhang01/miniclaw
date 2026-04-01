@@ -92,6 +92,20 @@ class ShortTermMemory:
         """清空所有消息"""
         self.messages.clear()
 
+    def update_system_prompt(self, prompt: str) -> None:
+        """更新系统提示词（OP4.1 Skill 注入/清除时使用）
+
+        替换 messages[0] 的系统提示词内容。
+        如果第一条消息不是 system 角色，则插入到开头。
+
+        Args:
+            prompt: 新的系统提示词内容
+        """
+        if self.messages and self.messages[0].get("role") == "system":
+            self.messages[0] = {"role": "system", "content": prompt}
+        else:
+            self.messages.insert(0, {"role": "system", "content": prompt})
+
     @property
     def message_count(self) -> int:
         """消息数量"""
