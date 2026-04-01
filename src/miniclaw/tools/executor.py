@@ -114,7 +114,7 @@ class ToolExecutor:
         try:
             approved = await self._approve(tool_info, arguments)
         except Exception as e:
-            logger.error("审批过程异常", tool=tool_name, error=str(e))
+            logger.error("审批过程异常", tool=tool_name, error=repr(e))
             return ToolResult(
                 success=False,
                 output=f"审批过程异常: {e}",
@@ -152,7 +152,7 @@ class ToolExecutor:
                 tool_name=tool_name,
             )
         except Exception as e:
-            logger.error("工具执行失败", tool=tool_name, error=str(e))
+            logger.error("工具执行失败", tool=tool_name, error=repr(e))
             return ToolResult(
                 success=False,
                 output=f"执行失败: {e}",

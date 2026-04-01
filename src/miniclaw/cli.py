@@ -55,7 +55,7 @@ async def _async_main(debug: bool) -> None:
         try:
             await gateway.long_term_memory.init()
         except Exception as e:
-            logger.warning("长期记忆初始化失败，将禁用", error=str(e))
+            logger.warning("长期记忆初始化失败，将禁用", error=repr(e))
             gateway.long_term_memory = None
 
     logger.info("MiniClaw 就绪，进入交互循环")
@@ -84,7 +84,7 @@ async def _async_main(debug: bool) -> None:
             try:
                 await gateway.handle_message(user_input, channel)
             except Exception as e:
-                logger.error("处理消息失败", error=str(e))
+                logger.error("处理消息失败", error=repr(e))
                 console.print(f"[red]❌ 出错了: {e}[/red]")
 
     except KeyboardInterrupt:

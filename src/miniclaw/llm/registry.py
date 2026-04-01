@@ -113,8 +113,9 @@ class ModelRoleRegistry:
                 logger.warning(
                     "LLM 调用失败，正在重试",
                     role=role,
+                    actual_role=actual_role,
                     attempt=attempt,
-                    error=str(e),
+                    error=repr(e),
                 )
                 if attempt < MAX_RETRIES:
                     await asyncio.sleep(RETRY_DELAY * attempt)
@@ -130,7 +131,10 @@ class ModelRoleRegistry:
                 counter.record("default", response.token_usage)
                 return response
             except Exception as fallback_error:
-                logger.error("fallback 到 default 也失败", error=str(fallback_error))
+                logger.error(
+                    "fallback 到 default 也失败",
+                    error=repr(fallback_error),
+                )
 
         raise RuntimeError(
             f"LLM 调用失败（角色={role}，重试 {MAX_RETRIES} 次）: {last_error}"

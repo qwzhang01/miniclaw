@@ -150,5 +150,5 @@ def load_config(config_path: Path | None = None) -> MiniClawConfig:
         return config
 
     except Exception as e:
-        logger.warning("配置文件解析失败，使用默认配置", error=str(e))
+        logger.warning("配置文件解析失败，使用默认配置", error=repr(e))
         return MiniClawConfig()

@@ -118,7 +118,7 @@ class Gateway:
             await self.long_term_memory.save_session(session_id, messages)
             logger.info("会话已保存", session=session_id, messages=len(messages))
         except Exception as e:
-            logger.warning("会话保存失败", session=session_id, error=str(e))
+            logger.warning("会话保存失败", session=session_id, error=repr(e))
 
     async def restore_session(self, session_id: str = DEFAULT_SESSION_ID) -> bool:
         """从长期记忆恢复会话（OP5.3）
@@ -144,7 +144,7 @@ class Gateway:
             logger.info("会话已恢复", session=session_id, messages=len(messages))
             return True
         except Exception as e:
-            logger.warning("会话恢复失败", session=session_id, error=str(e))
+            logger.warning("会话恢复失败", session=session_id, error=repr(e))
             return False
 
     async def shutdown(self, session_id: str = DEFAULT_SESSION_ID) -> None:
@@ -178,4 +178,4 @@ class Gateway:
             })
             logger.debug("记忆注入", count=len(memories))
         except Exception as e:
-            logger.warning("记忆检索失败", error=str(e))
+            logger.warning("记忆检索失败", error=repr(e))

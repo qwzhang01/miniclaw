@@ -118,7 +118,7 @@ class SkillLoader:
                     self._skills[info.name] = info
                     logger.debug("加载 Skill", name=info.name, path=str(skill_dir))
                 except Exception as e:
-                    logger.warning("Skill 加载失败", path=str(skill_dir), error=str(e))
+                    logger.warning("Skill 加载失败", path=str(skill_dir), error=repr(e))
 
     def get(self, name: str) -> SkillInfo | None:
         """按名称获取 Skill"""

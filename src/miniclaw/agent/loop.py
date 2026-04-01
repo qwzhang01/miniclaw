@@ -118,8 +118,8 @@ class AgentLoop:
                     messages, tools, role=role
                 )
             except Exception as e:
-                logger.error("LLM 调用失败", error=str(e))
-                error_msg = f"抱歉，AI 模型调用失败：{e}"
+                logger.error("LLM 调用失败", error=repr(e))
+                error_msg = f"抱歉，AI 模型调用失败：{e!r}"
                 context.add_assistant_message(error_msg)
                 return error_msg
 
@@ -203,8 +203,8 @@ class AgentLoop:
                     stream, context, on_stream, on_stream_end, on_tool_call
                 )
             except Exception as e:
-                logger.error("LLM 流式调用失败", error=str(e))
-                error_msg = f"抱歉，AI 模型调用失败：{e}"
+                logger.error("LLM 流式调用失败", error=repr(e))
+                error_msg = f"抱歉，AI 模型调用失败：{e!r}"
                 context.add_assistant_message(error_msg)
                 return error_msg
 
@@ -364,7 +364,7 @@ class AgentLoop:
             context.compress(summary)
             logger.info("上下文压缩完成", summary_len=len(summary))
         except Exception as e:
-            logger.warning("上下文压缩失败，继续使用完整历史", error=str(e))
+            logger.warning("上下文压缩失败，继续使用完整历史", error=repr(e))
 
     def _match_and_inject_skill(
         self, user_input: str, context: AgentContext
